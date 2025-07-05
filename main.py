@@ -4,8 +4,8 @@ from typing import List
 from dotenv import load_dotenv
 
 import google.generativeai as genai
-import chromadb
-import chromadb.utils.embedding_functions as embedding_functions
+from langchain_chroma import Chroma
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 load_dotenv()
 
@@ -73,21 +73,23 @@ def main(
 
     genai.configure(api_key=google_api_key)
 
-    # Instantiate a persistent chroma client in the persist_directory.
-    # This will automatically load any previously saved collections.
-    # Learn more at docs.trychroma.com
-    client = chromadb.PersistentClient(path=persist_directory)
-
-    # create embedding function
-    embedding_function = embedding_functions.GoogleGenerativeAiEmbeddingFunction(
-        api_key=google_api_key, task_type="RETRIEVAL_QUERY", model_name="text-embedding-004"
+    # 1. Instantiate the Google Generative AI embedding function
+    embedding_function = GoogleGenerativeAIEmbeddings(
+        model="models/text-embedding-004", google_api_key=google_api_key
     )
 
-    # Get the collection.
-    collection = client.get_or_create_collection(
-        name=collection_name, embedding_function=embedding_function
+    # 2. Instantiate the Chroma vector store
+    vector_store = Chroma(
+        persist_directory=persist_directory,
+        embedding_function=embedding_function,
+        collection_name=collection_name
     )
 
+    # 3. Create the MMR retriever
+    mmr_retriever = vector_store.as_retriever(
+        search_type="mmr",
+        search_kwargs = {'k':5, 'fetch_k':20}
+    )
     # We use a simple input loop.
     while True:
         # Get the user's query
@@ -97,24 +99,17 @@ def main(
             continue
         print("\nThinking...\n")
 
-        # Query the collection to get the 5 most relevant results
-        results = collection.query(
-            query_texts=[query], n_results=5, include=["documents", "metadatas"]
+        # Using mmr_retriever to get the relevant documents
+        retrieved_docs = mmr_retriever.invoke(query) #.get_relevant_documents() is deprecated
+        # Extracting the context out of docs
+        context = [doc.page_content for doc in retrieved_docs]
+
+        sources = "\n".join(
+            set(doc.metadata['filename'] for doc in retrieved_docs)
         )
-        if("chunks" in collection_name):
-            sources = "\n".join(
-                set(result['filename'] for result in results["metadatas"][0])
-            )
-        else:
-            sources = "\n".join(
-                [
-                    f"{result['filename']}: line {result['line_number']}"
-                    for result in results["metadatas"][0]  # type: ignore
-                ]
-            )
 
         # Get the response from Gemini
-        response = get_gemini_response(query, results["documents"][0])  # type: ignore
+        response = get_gemini_response(query, context)  # type: ignore
 
         # Output, with sources
         print(response)
