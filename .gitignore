@@ -1,0 +1,9 @@
+#Environment
+.env
+
+#JetBrains IDE
+.idea/
+
+#ChromaDB
+chroma_storage/
+
