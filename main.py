@@ -85,11 +85,6 @@ def main(
         collection_name=collection_name
     )
 
-    # 3. Create the MMR retriever
-    mmr_retriever = vector_store.as_retriever(
-        search_type="mmr",
-        search_kwargs = {'k':5, 'fetch_k':20}
-    )
     # We use a simple input loop.
     while True:
         # Get the user's query
@@ -97,10 +92,25 @@ def main(
         if len(query) == 0:
             print("Please enter a question. Ctrl+C to Quit.\n")
             continue
+        filename_filter = input("Filter by filename (optional, press enter to skip): ").strip()
         print("\nThinking...\n")
 
-        # Using mmr_retriever to get the relevant documents
-        retrieved_docs = mmr_retriever.invoke(query) #.get_relevant_documents() is deprecated
+        # Conditionally invoking the retriever with the filter
+        if filename_filter:
+            print(f"Searching within {filename_filter}")
+            retrieved_docs = vector_store.max_marginal_relevance_search(
+                query=query,
+                k=5,
+                fetch_k=20,
+                filter={"filename":filename_filter}
+            )
+        else:
+            retrieved_docs = vector_store.max_marginal_relevance_search(
+                query,
+                k=5,
+                fetch_k=20
+            ) #.get_relevant_documents() is deprecated
+
         # Extracting the context out of docs
         context = [doc.page_content for doc in retrieved_docs]
 
