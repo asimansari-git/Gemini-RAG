@@ -6,6 +6,11 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from langchain_chroma import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain.chains.query_constructor.base import AttributeInfo
+from langchain.retrievers.self_query.base import SelfQueryRetriever
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.globals import set_debug
+set_debug(True)
 
 load_dotenv()
 
@@ -85,6 +90,27 @@ def main(
         collection_name=collection_name
     )
 
+    # 3. Define the metadate fields that the Self-Query Retriever can use
+    metadata_field_info = [
+        AttributeInfo(
+            name="filename",
+            description="The name of the file the chunk text is from. For example, `state_of_the_union_2022.txt`",
+            type="string"
+        )
+    ]
+
+    # 4. Define the LLM that will power the self-querying logic
+    llm = ChatGoogleGenerativeAI(model="gemma-3n-e4b-it", google_api_key=google_api_key)
+
+    # 5. Create the Self-Query retriever
+    document_content_description = "This content of a State of the Union address"
+    retriever = SelfQueryRetriever.from_llm(
+        llm,
+        vector_store,
+        document_content_description,
+        metadata_field_info,
+        verbose=True #To see the generated queries
+    )
     # We use a simple input loop.
     while True:
         # Get the user's query
@@ -92,24 +118,11 @@ def main(
         if len(query) == 0:
             print("Please enter a question. Ctrl+C to Quit.\n")
             continue
-        filename_filter = input("Filter by filename (optional, press enter to skip): ").strip()
+
         print("\nThinking...\n")
 
-        # Conditionally invoking the retriever with the filter
-        if filename_filter:
-            print(f"Searching within {filename_filter}")
-            retrieved_docs = vector_store.max_marginal_relevance_search(
-                query=query,
-                k=5,
-                fetch_k=20,
-                filter={"filename":filename_filter}
-            )
-        else:
-            retrieved_docs = vector_store.max_marginal_relevance_search(
-                query,
-                k=5,
-                fetch_k=20
-            ) #.get_relevant_documents() is deprecated
+        # The retriever now does all the work of parsing the query
+        retrieved_docs = retriever.invoke(query)
 
         # Extracting the context out of docs
         context = [doc.page_content for doc in retrieved_docs]
@@ -125,6 +138,7 @@ def main(
         print(response)
         print("\n")
         print(f"Source documents:\n{sources}")
+        print(f"Context documents:\n{context}")
         print("\n")
 
 
