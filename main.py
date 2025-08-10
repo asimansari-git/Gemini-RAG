@@ -8,6 +8,8 @@ from langchain_chroma import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.chains.query_constructor.base import AttributeInfo
 from langchain.retrievers.self_query.base import SelfQueryRetriever
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.globals import set_debug
 set_debug(True)
@@ -109,7 +111,18 @@ def main(
         vector_store,
         document_content_description,
         metadata_field_info,
-        verbose=True #To see the generated queries
+        # search_kwargs={'k':10}
+    )
+
+    # 6. Create the document compressor
+    # This uses the same LLM to extract relevant parts from the retrieved documents
+    compressor = LLMChainExtractor.from_llm(llm)
+
+    # 7. Create the final Contextual Compression Retriever
+    # This retriever first calls the base_retriever then passes the results to the compressor
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor,
+        base_retriever=retriever
     )
     # We use a simple input loop.
     while True:
@@ -122,7 +135,7 @@ def main(
         print("\nThinking...\n")
 
         # The retriever now does all the work of parsing the query
-        retrieved_docs = retriever.invoke(query)
+        retrieved_docs = compression_retriever.invoke(query)
 
         # Extracting the context out of docs
         context = [doc.page_content for doc in retrieved_docs]
