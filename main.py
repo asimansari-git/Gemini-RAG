@@ -9,7 +9,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.chains.query_constructor.base import AttributeInfo
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import LLMChainExtractor
+from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.globals import set_debug
 set_debug(True)
@@ -116,7 +116,10 @@ def main(
 
     # 6. Create the document compressor
     # This uses the same LLM to extract relevant parts from the retrieved documents
-    compressor = LLMChainExtractor.from_llm(llm)
+    compressor = EmbeddingsFilter(
+        embeddings=embedding_function,
+        similarity_threshold=0.79
+    )
 
     # 7. Create the final Contextual Compression Retriever
     # This retriever first calls the base_retriever then passes the results to the compressor
