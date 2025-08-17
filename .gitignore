@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# IDE / Editor
+.idea/
+.vscode/
+
+# Environment variables
+.env
+
+# ChromaDB local storage
+chroma_storage/
