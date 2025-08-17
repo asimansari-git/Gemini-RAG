@@ -48,17 +48,22 @@ We recommend exploring the branches in the following order to get a comprehensiv
     *   **Analogy:** A nutritionist who builds a balanced meal, ensuring variety instead of just one type of food.
     *   **Read:** `MMR.md`
 
-3.  **`self-query` (The Super-Smart Librarian)**
+3.  **`metadata-filtering` (The Librarian with an Index)**
+    *   **Concept:** This branch demonstrates how to pre-filter documents based on their metadata, narrowing the search space for more precise results.
+    *   **Analogy:** A librarian who can jump directly to the correct aisle and section before starting the search.
+    *   **Read:** `Metadata_Filtering.md`
+
+4.  **`self-query` (The Super-Smart Librarian)**
     *   **Concept:** This branch demonstrates how to use a Self-Query Retriever to let the LLM itself translate a natural language question into a structured, filtered query.
     *   **Analogy:** A librarian who understands the user's intent and automatically knows which section and topic to search for.
     *   **Read:** `Self_Query_Explained.md` and `Self_Query_Under_The_Hood.md`
 
-4.  **`compression` (The Research Assistant)**
+5.  **`compression` (The Research Assistant)**
     *   **Concept:** This branch shows how to use a model to compress retrieved documents down to only the most relevant information before generating a final answer.
     *   **Analogy:** An assistant who reads ten books and returns a single page of highlighted, relevant paragraphs.
     *   **Read:** `Contextual_Compression.md`
 
-5.  **`compression-filter` (The Relevancy Scanner)**
+6.  **`compression-filter` (The Relevancy Scanner)**
     *   **Concept:** This branch uses a faster, more direct compression method that filters documents based on their embedding similarity to the query.
     *   **Analogy:** A high-tech scanner that instantly rejects books that don't match the core theme of your request.
     *   **Read:** `Embedding_Compression.md`
