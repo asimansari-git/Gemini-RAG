@@ -73,7 +73,9 @@ We recommend exploring the branches in the following order to get a comprehensiv
 
 ### Acknowledgements
 
-It is important to give credit where it is due. The implementation of `load_data.py` and the core concepts for using Gemini embeddings with ChromaDB were heavily inspired by the official ChromaDB Gemini example.
+It is important to give credit where it is due. The foundational `similarity-search` branch is based on the official ChromaDB documentation and examples.
+
+The implementation of `load_data.py` and the core concepts for using Gemini embeddings with ChromaDB were heavily inspired by the official ChromaDB Gemini example.
 
 Additionally, the `get_gemini_response` and `build_prompt` functions used across the `main.py` files in the various branches are also derived from this excellent resource.
 
