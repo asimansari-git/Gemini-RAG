@@ -46,27 +46,27 @@ I recommend exploring the branches in the following order to get a comprehensive
 2.  **[`mmr`](https://github.com/asimibnakhlaque/Gemini-RAG/tree/mmr) (The Nutritionist)**
     *   **Concept:** This branch introduces Maximal Marginal Relevance (MMR) to improve the diversity of retrieved documents and avoid redundancy.
     *   **Analogy:** A nutritionist who builds a balanced meal, ensuring variety instead of just one type of food.
-    *   **Read:** `MMR.md`
+    *   **Read:** [document](https://github.com/asimibnakhlaque/Gemini-RAG/tree/mmr?tab=readme-ov-file#rag-searching-with-maximal-marginal-relevance-mmr)
 
 3.  **[`metadata-filtering`](https://github.com/asimibnakhlaque/Gemini-RAG/tree/metadata-filtering) (The Librarian with an Index)**
     *   **Concept:** This branch demonstrates how to pre-filter documents based on their metadata, narrowing the search space for more precise results.
     *   **Analogy:** A librarian who can jump directly to the correct aisle and section before starting the search.
-    *   **Read:** `Metadata_Filtering.md`
+    *   **Read:** [document](https://github.com/asimibnakhlaque/Gemini-RAG/tree/metadata-filtering?tab=readme-ov-file#rag-precise-searching-with-metadata-filtering)
 
 4.  **[`self-query`](https://github.com/asimibnakhlaque/Gemini-RAG/tree/self-query) (The Super-Smart Librarian)**
     *   **Concept:** This branch demonstrates how to use a Self-Query Retriever to let the LLM itself translate a natural language question into a structured, filtered query.
     *   **Analogy:** A librarian who understands the user's intent and automatically knows which section and topic to search for.
-    *   **Read:** `Self_Query_Explained.md` and `Self_Query_Under_The_Hood.md`
+    *   **Read:** [document](https://github.com/asimibnakhlaque/Gemini-RAG/tree/self-query?tab=readme-ov-file#llm-aided-search-the-self-query-retriever)
 
 5.  **[`compression`](https://github.com/asimibnakhlaque/Gemini-RAG/tree/compression) (The Research Assistant)**
     *   **Concept:** This branch shows how to use a model to compress retrieved documents down to only the most relevant information before generating a final answer.
     *   **Analogy:** An assistant who reads ten books and returns a single page of highlighted, relevant paragraphs.
-    *   **Read:** `Contextual_Compression.md`
+    *   **Read:** [document](https://github.com/asimibnakhlaque/Gemini-RAG/tree/compression?tab=readme-ov-file#advanced-rag-contextual-compression)
 
 6.  **[`compression-filter`](https://github.com/asimibnakhlaque/Gemini-RAG/tree/compression-filter) (The Relevancy Scanner)**
     *   **Concept:** This branch uses a faster, more direct compression method that filters documents based on their embedding similarity to the query.
     *   **Analogy:** A high-tech scanner that instantly rejects books that don't match the core theme of your request.
-    *   **Read:** `Embedding_Compression.md`
+    *   **Read:** [document](https://github.com/asimibnakhlaque/Gemini-RAG/tree/compression-filter?tab=readme-ov-file#rag-compressing-with-embedding-filters)
 
 ### Additional Documentation
 
