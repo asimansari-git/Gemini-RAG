@@ -41,7 +41,7 @@ I recommend exploring the branches in the following order to get a comprehensive
 1.  **[`similarity-search`](https://github.com/asimibnakhlaque/Gemini-RAG/tree/similarity-search) (The Foundation)**
     *   **Concept:** This branch implements the most basic form of RAG, using a simple similarity search to retrieve documents.
     *   **Analogy:** A librarian who finds books based on the similarity of their core ideas to your request.
-    *   **Read:** `Similarity_Search.md`
+    *   **Read:** [document](https://github.com/asimibnakhlaque/Gemini-RAG/tree/similarity-search?tab=readme-ov-file#rag-the-foundation-of-retrieval---similarity-search)
 
 2.  **[`mmr`](https://github.com/asimibnakhlaque/Gemini-RAG/tree/mmr) (The Nutritionist)**
     *   **Concept:** This branch introduces Maximal Marginal Relevance (MMR) to improve the diversity of retrieved documents and avoid redundancy.
