@@ -36,7 +36,7 @@ git checkout similarity-search
 
 ### The Learning Path
 
-We recommend exploring the branches in the following order to get a comprehensive understanding of RAG, moving from fundamental to more advanced techniques.
+I recommend exploring the branches in the following order to get a comprehensive understanding of RAG, moving from fundamental to more advanced techniques.
 
 1.  **`similarity-search` (The Foundation)**
     *   **Concept:** This branch implements the most basic form of RAG, using a simple similarity search to retrieve documents.
