@@ -1,4 +1,4 @@
-# Learning RAG: A Hands-On Guide
+# RAG: A Hands-On Guide
 
 This repository provides a hands-on guide to understanding and implementing various techniques for Retrieval-Augmented Generation (RAG). Each branch demonstrates a specific RAG concept, building from the simplest to the most advanced.
 
