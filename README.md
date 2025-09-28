@@ -43,3 +43,5 @@ results = collection.query(
 This single command tells the database to perform all the complex vector math required to find the `n_results` (in this case, 5) most semantically similar documents to the user's question.
 
 While more advanced techniques like MMR and contextual compression exist to refine the results, this fundamental process of similarity search is the engine that powers every RAG system. It is the essential first step in finding the right information to generate a high-quality answer.
+
+Continue with [mmr](https://github.com/asimibnakhlaque/Gemini-RAG/tree/mmr)
