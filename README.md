@@ -13,7 +13,7 @@ Each branch in this repository contains a complete, working example of a specifi
 First, clone this repository to your computer using the following command:
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:asimibnakhlaque/Gemini-RAG.git
 ```
 
 **2. List All Available Branches**
