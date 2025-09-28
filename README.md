@@ -34,7 +34,7 @@ git checkout similarity-search
 
 ---
 
-### The Learning Path
+### The Learning Path (Index)
 
 I recommend exploring the branches in the following order to get a comprehensive understanding of RAG, moving from fundamental to more advanced techniques.
 
