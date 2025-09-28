@@ -35,3 +35,5 @@ This is the difference between a standard librarian and a super-smart one:
 *   **Reduces UI Complexity:** You don't need to build complex UIs with lots of dropdowns and filter boxes. The user's text input is often enough.
 
 By implementing a Self-Query Retriever, you are giving your RAG system a "brain" that can understand user intent, making it significantly more powerful and user-friendly.
+
+Continue with [compression](https://github.com/asimibnakhlaque/Gemini-RAG/tree/compression)
