@@ -25,9 +25,9 @@ Imagine you go to a massive library and ask the librarian for information on "th
 
 Metadata filtering is like giving your librarian a perfect index to the library, allowing them to instantly jump to the right section before they even start reading titles.
 
-### How It Works in Our Project (`metadata-filtering` branch)
+### How It Works
 
-In our `main.py` for this branch, we implement this directly. We first ask the user if they want to apply a filter:
+In `main.py` of this branch, we implement this directly. We first ask the user if they want to apply a filter:
 
 ```python
 filename_filter = input("Filter by filename (optional, press enter to skip): ").strip()
@@ -46,3 +46,5 @@ retrieved_docs = vector_store.max_marginal_relevance_search(
 This `filter` parameter is a powerful instruction to the vector database. It says, "Ignore everything else first. Only consider documents where the `filename` metadata is an exact match for what the user provided. *Then*, within that small subset, run your vector search."
 
 This technique is a crucial step in building more advanced and user-responsive RAG systems, as it allows you to combine the power of semantic vector search with the precision of structured database queries.
+
+Continue with [self-query](https://github.com/asimibnakhlaque/Gemini-RAG/tree/self-query)
