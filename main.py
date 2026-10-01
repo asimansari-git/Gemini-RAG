@@ -2,85 +2,84 @@ import argparse
 import os
 from typing import List
 from dotenv import load_dotenv
-
-import google.generativeai as genai
+from google import genai
 import chromadb
-import chromadb.utils.embedding_functions as embedding_functions
+from chromadb.utils import embedding_functions
 
 load_dotenv()
-
-model = genai.GenerativeModel("gemini-2.5-pro")
 
 
 def build_prompt(query: str, context: List[str]) -> str:
     """
-    Builds a prompt for the LLM. #
+    Builds a prompt for the LLM.
 
     This function builds a prompt for the LLM. It takes the original query,
     and the returned context, and asks the model to answer the question based only
     on what's in the context, not what's in its weights.
 
     Args:
-    query (str): The original query.
-    context (List[str]): The context of the query, returned by embedding search.
+        query (str): The original query.
+        context (List[str]): The context of the query, returned by embedding search.
 
     Returns:
-    A prompt for the LLM (str).
+        A prompt for the LLM (str).
     """
-
     base_prompt = {
-        "content": "I am going to ask you a question, which I would like you to answer"
-        " based only on the provided context, and not any other information."
-        " If there is not enough information in the context to answer the question,"
-        ' say "I am not sure", then try to make a guess.'
-        " Break your answer up into nicely readable paragraphs.",
+        "content": (
+            "I am going to ask you a question, which I would like you to answer"
+            " based only on the provided context, and not any other information."
+            " If there is not enough information in the context to answer the question,"
+            ' say "I am not sure", then try to make a guess.'
+            " Break your answer up into nicely readable paragraphs."
+        )
     }
     user_prompt = {
-        "content": f" The question is '{query}'. Here is all the context you have:"
-        f'{(" ").join(context)}',
+        "content": f" The question is '{query}'. Here is all the context you have: {' '.join(context)}"
     }
 
     # combine the prompts to output a single prompt string
-    system = f"{base_prompt['content']} {user_prompt['content']}"
-
-    return system
+    return f"{base_prompt['content']} {user_prompt['content']}"
 
 
-def get_gemini_response(query: str, context: List[str]) -> str:
+def get_gemini_response(
+    client: genai.Client, query: str, context: List[str], model: str = "gemini-2.5-pro"
+) -> str:
     """
-    Queries the Gemini API to get a response to the question.
+    Queries the Gemini API to get a response to the question using the google-genai SDK.
 
     Args:
-    query (str): The original query.
-    context (List[str]): The context of the query, returned by embedding search.
+        client (genai.Client): Initialized Google GenAI client.
+        query (str): The original query.
+        context (List[str]): The context of the query, returned by embedding search.
+        model (str): Gemini model identifier.
 
     Returns:
-    A response to the question.
+        A response to the question.
     """
-
-    response = model.generate_content(build_prompt(query, context))
-
-    return response.text
+    response = client.models.generate_content(
+        model=model,
+        contents=build_prompt(query, context),
+    )
+    return response.text or ""
 
 
 def main(
-        collection_name: str = "documents", persist_directory: str = "chroma_storage"
+    collection_name: str = "documents_collection", persist_directory: str = "chroma_storage"
 ) -> None:
-    # Check if the GOOGLE_API_KEY environment variable is set. Prompt the user to set it if not.
-    google_api_key = os.getenv("GOOGLE_API_KEY")
-    if not google_api_key:
-        raise ValueError("GOOGLE_API_KEY environment variable not found.")
+    # Resolve API Key for Google Gen AI
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY environment variable not found.")
 
-    genai.configure(api_key=google_api_key)
+    # Initialize Google Gen AI client
+    genai_client = genai.Client(api_key=api_key)
 
     # Instantiate a persistent chroma client in the persist_directory.
-    # This will automatically load any previously saved collections.
-    # Learn more at docs.trychroma.com
     client = chromadb.PersistentClient(path=persist_directory)
 
-    # create embedding function
-    embedding_function = embedding_functions.GoogleGenerativeAiEmbeddingFunction(
-        api_key=google_api_key, task_type="RETRIEVAL_QUERY", model_name="text-embedding-004"
+    # Modern Google Gen AI embedding function using google-genai SDK
+    embedding_function = embedding_functions.GoogleGeminiEmbeddingFunction(
+        api_key=api_key, model_name="text-embedding-004"
     )
 
     # Get the collection.
@@ -88,11 +87,10 @@ def main(
         name=collection_name, embedding_function=embedding_function
     )
 
-    # We use a simple input loop.
+    # Simple interactive query loop.
     while True:
-        # Get the user's query
         query = input("Query: ")
-        if len(query) == 0:
+        if len(query.strip()) == 0:
             print("Please enter a question. Ctrl+C to Quit.\n")
             continue
         print("\nThinking...\n")
@@ -101,20 +99,21 @@ def main(
         results = collection.query(
             query_texts=[query], n_results=5, include=["documents", "metadatas"]
         )
-        if("chunks" in collection_name):
+
+        if "chunks" in collection_name:
             sources = "\n".join(
-                set(result['filename'] for result in results["metadatas"][0])
+                set(result.get("filename", "unknown") for result in results["metadatas"][0])
             )
         else:
             sources = "\n".join(
                 [
-                    f"{result['filename']}: line {result['line_number']}"
+                    f"{result.get('filename', 'unknown')}: line {result.get('line_number', 'N/A')}"
                     for result in results["metadatas"][0]  # type: ignore
                 ]
             )
 
-        # Get the response from Gemini
-        response = get_gemini_response(query, results["documents"][0])  # type: ignore
+        # Get the response from Gemini using google-genai Client
+        response = get_gemini_response(genai_client, query, results["documents"][0])  # type: ignore
 
         # Output, with sources
         print(response)
@@ -125,7 +124,7 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Load documents from a directory into a Chroma collection"
+        description="Run similarity search RAG with Chroma and Gemini"
     )
 
     parser.add_argument(
