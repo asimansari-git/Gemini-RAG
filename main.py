@@ -2,153 +2,150 @@ import argparse
 import os
 from typing import List
 from dotenv import load_dotenv
-
-import google.generativeai as genai
+from google import genai
 from langchain_chroma import Chroma
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain.chains.query_constructor.base import AttributeInfo
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import EmbeddingsFilter
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.globals import set_debug
+
 set_debug(True)
-
 load_dotenv()
-
-model = genai.GenerativeModel("gemini-2.5-pro")
 
 
 def build_prompt(query: str, context: List[str]) -> str:
     """
-    Builds a prompt for the LLM. #
+    Builds a prompt for the LLM.
 
     This function builds a prompt for the LLM. It takes the original query,
     and the returned context, and asks the model to answer the question based only
     on what's in the context, not what's in its weights.
 
     Args:
-    query (str): The original query.
-    context (List[str]): The context of the query, returned by embedding search.
+        query (str): The original query.
+        context (List[str]): The context of the query, returned by embedding search.
 
     Returns:
-    A prompt for the LLM (str).
+        A prompt for the LLM (str).
     """
-
     base_prompt = {
-        "content": "I am going to ask you a question, which I would like you to answer"
-        " based only on the provided context, and not any other information."
-        " If there is not enough information in the context to answer the question,"
-        ' say "I am not sure", then try to make a guess.'
-        " Break your answer up into nicely readable paragraphs.",
+        "content": (
+            "I am going to ask you a question, which I would like you to answer"
+            " based only on the provided context, and not any other information."
+            " If there is not enough information in the context to answer the question,"
+            ' say "I am not sure", then try to make a guess.'
+            " Break your answer up into nicely readable paragraphs."
+        )
     }
     user_prompt = {
-        "content": f" The question is '{query}'. Here is all the context you have:"
-        f'{(" ").join(context)}',
+        "content": f" The question is '{query}'. Here is all the context you have: {' '.join(context)}"
     }
 
     # combine the prompts to output a single prompt string
-    system = f"{base_prompt['content']} {user_prompt['content']}"
-
-    return system
+    return f"{base_prompt['content']} {user_prompt['content']}"
 
 
-def get_gemini_response(query: str, context: List[str]) -> str:
+def get_gemini_response(
+    client: genai.Client, query: str, context: List[str], model: str = "gemini-2.5-pro"
+) -> str:
     """
-    Queries the Gemini API to get a response to the question.
+    Queries the Gemini API to get a response to the question using the google-genai SDK.
 
     Args:
-    query (str): The original query.
-    context (List[str]): The context of the query, returned by embedding search.
+        client (genai.Client): Initialized Google GenAI client.
+        query (str): The original query.
+        context (List[str]): The context of the query, returned by embedding search.
+        model (str): Gemini model identifier.
 
     Returns:
-    A response to the question.
+        A response to the question.
     """
-
-    response = model.generate_content(build_prompt(query, context))
-
-    return response.text
+    response = client.models.generate_content(
+        model=model,
+        contents=build_prompt(query, context),
+    )
+    return response.text or ""
 
 
 def main(
-        collection_name: str = "documents", persist_directory: str = "chroma_storage"
+    collection_name: str = "documents_collection", persist_directory: str = "chroma_storage"
 ) -> None:
-    # Check if the GOOGLE_API_KEY environment variable is set. Prompt the user to set it if not.
-    google_api_key = os.getenv("GOOGLE_API_KEY")
-    if not google_api_key:
-        raise ValueError("GOOGLE_API_KEY environment variable not found.")
+    # Resolve API Key for Google Gen AI
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY environment variable not found.")
 
-    genai.configure(api_key=google_api_key)
+    # Initialize Google Gen AI client
+    genai_client = genai.Client(api_key=api_key)
 
     # 1. Instantiate the Google Generative AI embedding function
     embedding_function = GoogleGenerativeAIEmbeddings(
-        model="models/text-embedding-004", google_api_key=google_api_key
+        model="models/text-embedding-004", google_api_key=api_key
     )
 
     # 2. Instantiate the Chroma vector store
     vector_store = Chroma(
         persist_directory=persist_directory,
         embedding_function=embedding_function,
-        collection_name=collection_name
+        collection_name=collection_name,
     )
 
-    # 3. Define the metadate fields that the Self-Query Retriever can use
+    # 3. Define the metadata fields that the Self-Query Retriever can use
     metadata_field_info = [
         AttributeInfo(
             name="filename",
             description="The name of the file the chunk text is from. For example, `state_of_the_union_2022.txt`",
-            type="string"
+            type="string",
         )
     ]
 
-    # 4. Define the LLM that will power the self-querying logic
-    llm = ChatGoogleGenerativeAI(model="gemma-3n-e4b-it", google_api_key=google_api_key)
+    # 4. Define the LLM that will power the self-querying logic (gemini-2.5-flash)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=api_key)
 
     # 5. Create the Self-Query retriever
-    document_content_description = "This content of a State of the Union address"
+    document_content_description = "The content of a State of the Union address"
     retriever = SelfQueryRetriever.from_llm(
         llm,
         vector_store,
         document_content_description,
         metadata_field_info,
-        # search_kwargs={'k':10}
     )
 
-    # 6. Create the document compressor
-    # This uses the same LLM to extract relevant parts from the retrieved documents
+    # 6. Create the document compressor using EmbeddingsFilter
     compressor = EmbeddingsFilter(
         embeddings=embedding_function,
-        similarity_threshold=0.79
+        similarity_threshold=0.79,
     )
 
     # 7. Create the final Contextual Compression Retriever
-    # This retriever first calls the base_retriever then passes the results to the compressor
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor,
-        base_retriever=retriever
+        base_retriever=retriever,
     )
-    # We use a simple input loop.
+
+    # Simple interactive query loop.
     while True:
-        # Get the user's query
         query = input("Query: ")
-        if len(query) == 0:
+        if len(query.strip()) == 0:
             print("Please enter a question. Ctrl+C to Quit.\n")
             continue
 
         print("\nThinking...\n")
 
-        # The retriever now does all the work of parsing the query
+        # The retriever parses the query and compresses the retrieved set
         retrieved_docs = compression_retriever.invoke(query)
 
         # Extracting the context out of docs
         context = [doc.page_content for doc in retrieved_docs]
 
         sources = "\n".join(
-            set(doc.metadata['filename'] for doc in retrieved_docs)
+            set(doc.metadata.get("filename", "unknown") for doc in retrieved_docs)
         )
 
-        # Get the response from Gemini
-        response = get_gemini_response(query, context)  # type: ignore
+        # Get the response from Gemini using google-genai Client
+        response = get_gemini_response(genai_client, query, context)
 
         # Output, with sources
         print(response)
@@ -160,7 +157,7 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Load documents from a directory into a Chroma collection"
+        description="Run compression filter RAG with Chroma, LangChain, and Gemini"
     )
 
     parser.add_argument(
