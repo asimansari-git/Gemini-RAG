@@ -1,5 +1,6 @@
 import os
 import argparse
+import pickle
 from dotenv import load_dotenv
 from tqdm import tqdm
 
@@ -7,6 +8,8 @@ import chromadb
 from chromadb.utils import embedding_functions
 from google import genai
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from rank_bm25 import BM25Okapi
+
 
 load_dotenv()
 
@@ -41,7 +44,7 @@ def main(
 
     # Modern Google Gen AI embedding function using google-genai SDK
     embedding_function = embedding_functions.GoogleGeminiEmbeddingFunction(
-        api_key=api_key, model_name="text-embedding-004"
+        model_name="gemini-embedding-001"
     )
 
     # If the collection already exists, we just return it. This allows us to add more data.
@@ -65,8 +68,22 @@ def main(
         )
 
     new_count = collection.count()
-    print(f"Added {new_count - count} documents")
+    print(f"Added {new_count - count} documents to ChromaDB")
 
+    print("Tokenizing corpus and  building BM25 index")
+    tokenized_corpus = [doc.lower().split() for doc in documents]
+    bm25 = BM25Okapi(tokenized_corpus)
+
+    bm25_payload = {
+        "bm25": bm25,
+        "documents": documents,
+        "metadatas": metadatas
+    }
+
+    bm25_file_path = os.path.join(persist_directory, "bm25_index.pkl")
+    with open(bm25_file_path, "wb") as f:
+        pickle.dump(bm25_payload, f)
+    print(f"Successfully serialized BM25 index to {bm25_file_path}")
 
 if __name__ == "__main__":
     # Read the data directory, collection name, and persist directory

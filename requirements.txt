@@ -9,3 +9,4 @@ langchain-community>=0.3.0
 tqdm
 python-dotenv
 lark
+rank-bm25>=0.2.2
