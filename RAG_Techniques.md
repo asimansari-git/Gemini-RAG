@@ -47,3 +47,13 @@ This document explains several advanced techniques for Retrieval-Augmented Gener
     2.  **Summarizing/Extracting:** Pulling out only the single most relevant sentence or two from each document.
 *   **The Goal:** To clean up the retrieved context, removing all noise and fluff. This provides the final LLM with a more potent, concentrated set of information, leading to a more accurate and concise final answer.
 *   **Analogy:** The librarian brings you a stack of 10 books. But instead of making you read them all, they quickly flip through and put sticky notes on the single most important paragraph in each book that relates to your question. You only need to read the 10 paragraphs with sticky notes.
+
+---
+
+### 6. Hybrid Search (Sparse + Dense with Reciprocal Rank Fusion)
+
+*   **What it is:** A dual-retrieval pipeline that combines lexical keyword search (BM25) with semantic vector search (ChromaDB) and blends their rankings using Reciprocal Rank Fusion (RRF).
+*   **The Goal:** To eliminate the blind spots of pure semantic embeddings (which struggle with exact product serials, error codes, and statutory citations) while preserving semantic understanding for natural language queries.
+*   **Analogy:** You ask for a specific vintage watch part. One librarian searches strictly by the exact catalog number (BM25), while another searches by descriptive style and time period (vector search). A lead coordinator (RRF) prioritizes the items found at the top of both searches.
+*   **In our code:** `query_chroma_dense` and `query_bm25` retrieve candidate pools, which are fused via `reciprocal_rank_fusion(dense_hits, sparse_hits, k=60, top_n=5)`.
+
