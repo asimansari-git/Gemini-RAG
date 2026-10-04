@@ -68,6 +68,11 @@ I recommend exploring the branches in the following order to get a comprehensive
     *   **Analogy:** A high-tech scanner that instantly rejects books that don't match the core theme of your request.
     *   **Read:** [document](https://github.com/asimibnakhlaque/Gemini-RAG/tree/compression-filter?tab=readme-ov-file#rag-compressing-with-embedding-filters)
 
+7.  **[`hybrid-search-rrf`](https://github.com/asimibnakhlaque/Gemini-RAG/tree/hybrid-search-rrf) (The Two Expert Investigators)**
+    *   **Concept:** This branch combines lexical keyword search (BM25) with semantic vector search (ChromaDB), blending their rankings using Reciprocal Rank Fusion (RRF) to eliminate dense embedding blind spots like exact IDs and citations.
+    *   **Analogy:** Two specialized detectives—one who tracks exact fingerprints and badge numbers, and one who profiles psychological motives—whose findings are fused by a chief investigator.
+    *   **Read:** [document](https://github.com/asimibnakhlaque/Gemini-RAG/tree/hybrid-search-rrf?tab=readme-ov-file#advanced-rag-hybrid-search-with-reciprocal-rank-fusion-rrf)
+
 ### Additional Documentation
 
 *   `RAG_Techniques.md`: A high-level overview of all the concepts covered.
